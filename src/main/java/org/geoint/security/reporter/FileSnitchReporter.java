@@ -26,7 +26,7 @@ import org.geoint.security.spi.SnitchReporter;
  * FileSnitchReporter if filtered out.
  *
  */
-public class FileSnitchReporter implements SnitchReporter {
+public class FileSnitchReporter extends SnitchReporter {
 
     private final File outfile;
     private final PrintWriter writer;
@@ -77,7 +77,7 @@ public class FileSnitchReporter implements SnitchReporter {
             return;
         }
 
-        writer.append(p.toString());
+        writer.append(policyFormat(p));
     }
 
     /**

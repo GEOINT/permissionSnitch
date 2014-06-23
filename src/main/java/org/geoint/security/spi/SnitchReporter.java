@@ -7,9 +7,20 @@ import org.geoint.security.SnitchSecurityManager;
  * SPI interface that logs/reports which operations were requested through the
  * {@link SnitchSecurityManager}.
  */
-public interface SnitchReporter {
+public abstract class SnitchReporter {
 
-    void permission(Permission p);
+    public abstract void permission(Permission p);
 
-    public void permission(Permission perm, Object context);
+    public abstract void permission(Permission perm, Object context);
+    
+    protected String policyFormat(Permission p) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(p.getClass().getName())
+                .append(" \"")
+                .append(p.getName())
+                .append("\" \"")
+                .append(p.getActions())
+                .append("\";\n");
+        return sb.toString();
+    }
 }

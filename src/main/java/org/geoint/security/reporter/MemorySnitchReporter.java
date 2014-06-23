@@ -10,7 +10,7 @@ import org.geoint.security.spi.SnitchReporter;
  * <p>
  * Useful for unit testing.
  */
-public class MemorySnitchReporter implements SnitchReporter {
+public class MemorySnitchReporter extends SnitchReporter {
 
     private final List<Permission> permissions = new ArrayList<>();
 
