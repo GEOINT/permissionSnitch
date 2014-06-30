@@ -1,6 +1,8 @@
 package org.geoint.security;
 
 import java.security.Permission;
+import java.security.PrivilegedAction;
+import java.security.ProtectionDomain;
 import org.geoint.security.reporter.ConsoleSnitchReporter;
 import org.geoint.security.spi.SnitchReporter;
 
@@ -59,7 +61,8 @@ public class SnitchSecurityManager extends SecurityManager {
 
     @Override
     public void checkPermission(Permission perm) {
-        reporter.permission(perm);
+//        reporter.permission(perm);
+        
     }
 
     private SnitchReporter loadReporter() {
@@ -77,5 +80,27 @@ public class SnitchSecurityManager extends SecurityManager {
             System.err.println(sb.toString());
             return new ConsoleSnitchReporter();
         }
+    }
+
+    private PrivilegedAction<ProtectionDomain> getProtectionDomainAction(
+            final Class<?> clazz) {
+        return new PrivilegedAction<ProtectionDomain>() {
+            @Override
+            public ProtectionDomain run() {
+                return clazz.getProtectionDomain();
+            }
+        };
+    }
+    
+    /**
+     * returns the originating class name from the current stack trace.  
+     * 
+     * @param p
+     * @return 
+     */
+    private String getOriginatingClass (Permission p) {
+        final Throwable t = new Throwable();
+        final StackTraceElement[] ste = t.getStackTrace();
+        return ste[ste.length].getClassName();
     }
 }

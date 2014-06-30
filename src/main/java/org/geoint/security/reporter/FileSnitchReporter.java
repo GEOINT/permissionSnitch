@@ -62,23 +62,15 @@ public class FileSnitchReporter extends SnitchReporter {
     }
 
     @Override
-    public void permission(Permission p) {
-        log(p);
-    }
-
-    @Override
-    public void permission(Permission perm, Object context) {
-        log(perm);
-    }
-
-    private void log(Permission p) {
+    public void permission(Permission p, Object context) {
         if (filter(p)) {
             //filter out file operation checks for this class
             return;
         }
 
-        writer.append(policyFormat(p));
+        writer.append(policyFormat(context, p));
     }
+
 
     /**
      * Filters out checks for operations explicitly used by this reporter

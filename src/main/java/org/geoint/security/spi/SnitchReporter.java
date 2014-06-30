@@ -9,8 +9,6 @@ import org.geoint.security.SnitchSecurityManager;
  */
 public abstract class SnitchReporter {
 
-    public abstract void permission(Permission p);
-
     public abstract void permission(Permission perm, Object context);
     
     protected String policyFormat(Permission p) {

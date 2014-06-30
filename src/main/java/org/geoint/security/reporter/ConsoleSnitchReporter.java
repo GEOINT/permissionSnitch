@@ -9,16 +9,8 @@ import org.geoint.security.spi.SnitchReporter;
 public class ConsoleSnitchReporter extends SnitchReporter {
 
     @Override
-    public void permission(Permission p) {
-        log(p);
-    }
-
-    @Override
     public void permission(Permission p, Object context) {
-        log(p);
+        System.out.println("[" + context + "] " + p.toString());
     }
 
-    private void log(Permission p) {
-        System.out.println(p.toString());
-    }
 }
