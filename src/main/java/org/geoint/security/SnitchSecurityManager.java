@@ -3,6 +3,8 @@ package org.geoint.security;
 import java.security.Permission;
 import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.geoint.security.reporter.ConsoleSnitchReporter;
 import org.geoint.security.spi.SnitchReporter;
 
@@ -45,6 +47,7 @@ public class SnitchSecurityManager extends SecurityManager {
     public final static String PROPERTY_SM_SNITCH_REPORTER
             = "org.geoint.security.snitch.reporter";
     private final SnitchReporter reporter;
+    private final String thisJar = this.getClass().getProtectionDomain().getCodeSource().getLocation().toString();
 
     public SnitchSecurityManager() {
         reporter = loadReporter();
@@ -56,13 +59,20 @@ public class SnitchSecurityManager extends SecurityManager {
 
     @Override
     public void checkPermission(Permission perm, Object context) {
-        reporter.permission(perm, context);
+        //reporter.permission(perm, context);
+        System.out.println("perm: "+perm);
+        ProtectionDomain pd = getProductionDomain(getOriginatingClass(perm));
+        System.out.println("pd: "+pd);
+        reporter.permission(perm, pd);
     }
 
     @Override
     public void checkPermission(Permission perm) {
 //        reporter.permission(perm);
-        
+        System.out.println("perm: "+perm);
+        ProtectionDomain pd = getProductionDomain(getOriginatingClass(perm));
+        System.out.println("pd: "+pd);
+        reporter.permission(perm, pd);
     }
 
     private SnitchReporter loadReporter() {
@@ -82,6 +92,17 @@ public class SnitchSecurityManager extends SecurityManager {
         }
     }
 
+    private ProtectionDomain getProductionDomain(String clazz) {
+        Class c = null;
+        try {
+            c = Class.forName(clazz);
+        } catch (ClassNotFoundException ex) {
+            //we know this is fine, we get the class name from a StackTrace
+        }
+        PrivilegedAction<ProtectionDomain> papd = getProtectionDomainAction(c);
+        return papd.run();
+    }
+
     private PrivilegedAction<ProtectionDomain> getProtectionDomainAction(
             final Class<?> clazz) {
         return new PrivilegedAction<ProtectionDomain>() {
@@ -91,16 +112,16 @@ public class SnitchSecurityManager extends SecurityManager {
             }
         };
     }
-    
+
     /**
-     * returns the originating class name from the current stack trace.  
-     * 
+     * returns the originating class name from the current stack trace.
+     *
      * @param p
-     * @return 
+     * @return
      */
-    private String getOriginatingClass (Permission p) {
+    private String getOriginatingClass(Permission p) {
         final Throwable t = new Throwable();
         final StackTraceElement[] ste = t.getStackTrace();
-        return ste[ste.length].getClassName();
+        return ste[ste.length - 1].getClassName();
     }
 }

@@ -1,6 +1,7 @@
 package org.geoint.security.reporter;
 
 import java.security.Permission;
+import java.security.ProtectionDomain;
 import org.geoint.security.spi.SnitchReporter;
 
 /**
@@ -9,8 +10,8 @@ import org.geoint.security.spi.SnitchReporter;
 public class ConsoleSnitchReporter extends SnitchReporter {
 
     @Override
-    public void permission(Permission p, Object context) {
-        System.out.println("[" + context + "] " + p.toString());
+    public void permission(Permission p, ProtectionDomain pd) {
+        System.out.println(format(p, pd));
     }
 
 }

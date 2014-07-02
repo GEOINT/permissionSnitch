@@ -1,6 +1,7 @@
 package org.geoint.security.reporter;
 
 import java.security.Permission;
+import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.List;
 import org.geoint.security.spi.SnitchReporter;
@@ -23,12 +24,7 @@ public class MemorySnitchReporter extends SnitchReporter {
     }
 
     @Override
-    public void permission(Permission p) {
-        permissions.add(p);
-    }
-
-    @Override
-    public void permission(Permission p, Object context) {
+    public void permission(Permission p, ProtectionDomain pd) {
         permissions.add(p);
     }
 

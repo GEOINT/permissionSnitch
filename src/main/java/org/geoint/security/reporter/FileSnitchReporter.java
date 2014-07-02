@@ -7,6 +7,7 @@ import java.io.FilePermission;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.security.Permission;
+import java.security.ProtectionDomain;
 import org.geoint.security.spi.SnitchReporter;
 
 /**
@@ -62,13 +63,13 @@ public class FileSnitchReporter extends SnitchReporter {
     }
 
     @Override
-    public void permission(Permission p, Object context) {
+    public void permission(Permission p, ProtectionDomain pd) {
         if (filter(p)) {
             //filter out file operation checks for this class
             return;
         }
 
-        writer.append(policyFormat(context, p));
+        writer.append(format(p, pd));
     }
 
 
