@@ -3,8 +3,6 @@ package org.geoint.security;
 import java.security.Permission;
 import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.geoint.security.reporter.ConsoleSnitchReporter;
 import org.geoint.security.spi.SnitchReporter;
 
@@ -60,18 +58,18 @@ public class SnitchSecurityManager extends SecurityManager {
     @Override
     public void checkPermission(Permission perm, Object context) {
         //reporter.permission(perm, context);
-        System.out.println("perm: "+perm);
+        System.out.println("perm: " + perm);
         ProtectionDomain pd = getProductionDomain(getOriginatingClass(perm));
-        System.out.println("pd: "+pd);
+        System.out.println("pd: " + pd);
         reporter.permission(perm, pd);
     }
 
     @Override
     public void checkPermission(Permission perm) {
 //        reporter.permission(perm);
-        System.out.println("perm: "+perm);
+        System.out.println("no context perm: " + perm);
         ProtectionDomain pd = getProductionDomain(getOriginatingClass(perm));
-        System.out.println("pd: "+pd);
+        System.out.println("pd: " + pd);
         reporter.permission(perm, pd);
     }
 
@@ -81,7 +79,8 @@ public class SnitchSecurityManager extends SecurityManager {
                         ConsoleSnitchReporter.class.getName());
         try {
             return (SnitchReporter) Class.forName(reporterType).newInstance();
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+        } catch (ClassNotFoundException | InstantiationException 
+                | IllegalAccessException ex) {
             StringBuilder sb = new StringBuilder();
             sb.append("Unable to load snitch reporter '")
                     .append(reporterType)
