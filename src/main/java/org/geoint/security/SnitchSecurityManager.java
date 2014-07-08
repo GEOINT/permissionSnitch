@@ -46,6 +46,7 @@ public class SnitchSecurityManager extends SecurityManager {
             = "org.geoint.security.snitch.reporter";
     private final SnitchReporter reporter;
     private final String thisJar = this.getClass().getProtectionDomain().getCodeSource().getLocation().toString();
+    private final static String thisClass = SnitchSecurityManager.class.getName();
 
     public SnitchSecurityManager() {
         reporter = loadReporter();
@@ -59,18 +60,27 @@ public class SnitchSecurityManager extends SecurityManager {
     public void checkPermission(Permission perm, Object context) {
         //reporter.permission(perm, context);
         System.out.println("perm: " + perm);
-        ProtectionDomain pd = getProductionDomain(getOriginatingClass(perm));
-        System.out.println("pd: " + pd);
-        reporter.permission(perm, pd);
+        try {
+            ProtectionDomain pd = getProductionDomain(getOriginatingClass(perm));
+            System.out.println("pd: " + pd);
+            reporter.permission(perm, pd);
+        } catch (RecursivePermissionException ex) {
+            //do nothing
+        }
     }
 
     @Override
     public void checkPermission(Permission perm) {
 //        reporter.permission(perm);
         System.out.println("no context perm: " + perm);
-        ProtectionDomain pd = getProductionDomain(getOriginatingClass(perm));
-        System.out.println("pd: " + pd);
-        reporter.permission(perm, pd);
+        try {
+            ProtectionDomain pd = getProductionDomain(getOriginatingClass(perm));
+            System.out.println("pd: " + pd);
+            reporter.permission(perm, pd);
+        } catch (RecursivePermissionException ex) {
+            //do nothing
+            System.out.println(" --- recursive");
+        }
     }
 
     private SnitchReporter loadReporter() {
@@ -79,8 +89,7 @@ public class SnitchSecurityManager extends SecurityManager {
                         ConsoleSnitchReporter.class.getName());
         try {
             return (SnitchReporter) Class.forName(reporterType).newInstance();
-        } catch (ClassNotFoundException | InstantiationException 
-                | IllegalAccessException ex) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
             StringBuilder sb = new StringBuilder();
             sb.append("Unable to load snitch reporter '")
                     .append(reporterType)
@@ -98,15 +107,19 @@ public class SnitchSecurityManager extends SecurityManager {
         } catch (ClassNotFoundException ex) {
             //we know this is fine, we get the class name from a StackTrace
         }
+        System.out.println("first here");
         PrivilegedAction<ProtectionDomain> papd = getProtectionDomainAction(c);
+        System.out.println("here");
         return papd.run();
     }
 
     private PrivilegedAction<ProtectionDomain> getProtectionDomainAction(
             final Class<?> clazz) {
+        System.out.println("hewre");
         return new PrivilegedAction<ProtectionDomain>() {
             @Override
             public ProtectionDomain run() {
+                System.out.println("weeeee");
                 return clazz.getProtectionDomain();
             }
         };
@@ -118,9 +131,24 @@ public class SnitchSecurityManager extends SecurityManager {
      * @param p
      * @return
      */
-    private String getOriginatingClass(Permission p) {
+    private String getOriginatingClass(Permission p)
+            throws RecursivePermissionException {
         final Throwable t = new Throwable();
         final StackTraceElement[] ste = t.getStackTrace();
+        for (StackTraceElement s : ste) {
+            if (s.getClassName().contentEquals(thisClass)
+                    && s.getMethodName().contentEquals("getProductionDomain")) {
+                throw new RecursivePermissionException();
+            }
+        }
         return ste[ste.length - 1].getClassName();
+    }
+
+    /**
+     * Thrown when the permission request was made by the permission snitch
+     * application itself
+     */
+    private class RecursivePermissionException extends Exception {
+
     }
 }
