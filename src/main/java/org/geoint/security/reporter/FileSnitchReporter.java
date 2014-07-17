@@ -6,8 +6,14 @@ import java.io.FileOutputStream;
 import java.io.FilePermission;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.security.Permission;
 import java.security.ProtectionDomain;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.geoint.security.spi.SnitchReporter;
 
 /**
@@ -30,8 +36,9 @@ import org.geoint.security.spi.SnitchReporter;
 public class FileSnitchReporter extends SnitchReporter {
 
     private final File outfile;
-    private final PrintWriter writer;
+    private final RandomAccessFile raf;
     private volatile boolean started = false;
+    private final Map<ProtectionDomain, List<Permission>> perms = new HashMap<>();
 
     public static final String PROPERTY_FILE_LOCATION = "org.geoint.snitch.reporter.file";
     private static final String DEFAULT_FILE_NAME = "permissions.snitch";
@@ -42,19 +49,21 @@ public class FileSnitchReporter extends SnitchReporter {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                if (writer != null) {
-                    writer.flush();
-                    writer.close();
+                if (raf != null) {
+                    try {
+                        raf.close();
+                    } catch (Exception ex) {
+                    }
                 }
             }
         });
 
         try {
-            writer = new PrintWriter(new BufferedOutputStream(new FileOutputStream(outfile, true)));
+            raf = new RandomAccessFile(outfile, "rw");
         } catch (Throwable ex) {
             throw new RuntimeException("Unable to snitch permissions to file", ex);
         }
-//        writeHeader(outfile);
+
         started = true;
     }
 
@@ -69,9 +78,22 @@ public class FileSnitchReporter extends SnitchReporter {
             return;
         }
 
-        writer.append(format(p, pd));
-    }
+        if (!perms.containsKey(pd)) {
+            perms.put(pd, new ArrayList<Permission>());
+        }
+        perms.get(pd).add(p);
 
+        //write out the perms
+        try {
+            raf.seek(0);
+            for (Entry<ProtectionDomain, List<Permission>> entry : perms.entrySet()) {
+                raf.writeChars(format(entry.getKey(), entry.getValue().toArray(new Permission[0])));
+            }
+        } catch (IOException ex) {
+            System.err.println("Unable to save permission");
+            ex.printStackTrace();
+        }
+    }
 
     /**
      * Filters out checks for operations explicitly used by this reporter
