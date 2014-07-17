@@ -33,7 +33,6 @@ public class FileSnitchReporterTest {
                 = System.getProperty("java.io.tmpdir") + File.separator + "testSnitchFile";
         System.setProperty(FileSnitchReporter.PROPERTY_FILE_LOCATION, testFileName);
         File f = new File(testFileName);
-        System.out.println(f.getPath());
         f.deleteOnExit();
 
         FileSnitchReporter reporter = new FileSnitchReporter();
