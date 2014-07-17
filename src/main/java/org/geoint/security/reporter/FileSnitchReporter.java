@@ -1,11 +1,8 @@
 package org.geoint.security.reporter;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FilePermission;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.security.Permission;
 import java.security.ProtectionDomain;
