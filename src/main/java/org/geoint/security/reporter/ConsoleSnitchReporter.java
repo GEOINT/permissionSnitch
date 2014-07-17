@@ -11,7 +11,7 @@ public class ConsoleSnitchReporter extends SnitchReporter {
 
     @Override
     public void permission(Permission p, ProtectionDomain pd) {
-        System.out.println(format(p, pd));
+        System.out.println(format(pd, p));
     }
 
 }
