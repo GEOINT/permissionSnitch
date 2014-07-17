@@ -3,6 +3,8 @@ package org.geoint.security;
 import java.security.Permission;
 import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
+import java.util.HashSet;
+import java.util.Set;
 import org.geoint.security.reporter.ConsoleSnitchReporter;
 import org.geoint.security.spi.SnitchReporter;
 
@@ -47,6 +49,7 @@ public class SnitchSecurityManager extends SecurityManager {
     private final SnitchReporter reporter;
     private final String thisJar = this.getClass().getProtectionDomain().getCodeSource().getLocation().toString();
     private final static String thisClass = SnitchSecurityManager.class.getName();
+    private final Set<String> permsCache = new HashSet<>();
 
     public SnitchSecurityManager() {
         reporter = loadReporter();
@@ -58,28 +61,25 @@ public class SnitchSecurityManager extends SecurityManager {
 
     @Override
     public void checkPermission(Permission perm, Object context) {
-        //reporter.permission(perm, context);
-        System.out.println("perm: " + perm);
-        try {
-            ProtectionDomain pd = getProductionDomain(getOriginatingClass(perm));
-            System.out.println("pd: " + pd);
-            reporter.permission(perm, pd);
-        } catch (RecursivePermissionException ex) {
-            //do nothing
-        }
+        checkPermission(perm);
     }
 
     @Override
     public void checkPermission(Permission perm) {
-//        reporter.permission(perm);
-        System.out.println("no context perm: " + perm);
+        final String p = perm.toString();
+        if (permsCache.contains(perm.toString())) {
+            return;
+        }
+        permsCache.add(p);
+
         try {
-            ProtectionDomain pd = getProductionDomain(getOriginatingClass(perm));
-            System.out.println("pd: " + pd);
-            reporter.permission(perm, pd);
+            String className = getOriginatingClass(perm);
+            ProtectionDomain pd = getProductionDomain(className);
+            if (pd.getCodeSource() != null) {
+                reporter.permission(perm, pd);
+            }
         } catch (RecursivePermissionException ex) {
             //do nothing
-            System.out.println(" --- recursive");
         }
     }
 
@@ -107,19 +107,15 @@ public class SnitchSecurityManager extends SecurityManager {
         } catch (ClassNotFoundException ex) {
             //we know this is fine, we get the class name from a StackTrace
         }
-        System.out.println("first here");
         PrivilegedAction<ProtectionDomain> papd = getProtectionDomainAction(c);
-        System.out.println("here");
         return papd.run();
     }
 
     private PrivilegedAction<ProtectionDomain> getProtectionDomainAction(
             final Class<?> clazz) {
-        System.out.println("hewre");
         return new PrivilegedAction<ProtectionDomain>() {
             @Override
             public ProtectionDomain run() {
-                System.out.println("weeeee");
                 return clazz.getProtectionDomain();
             }
         };
