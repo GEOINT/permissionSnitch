@@ -3,10 +3,11 @@ package org.geoint.security;
 import java.io.File;
 import java.security.Permission;
 import org.geoint.security.reporter.MemorySnitchReporter;
-import org.junit.Test;
+import org.junit.After;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  *
@@ -26,19 +27,16 @@ public class SnitchSecurityManagerTest {
     public static void init() throws Exception {
         reporter = new MemorySnitchReporter();
         sm = new SnitchSecurityManager(reporter);
-        System.setSecurityManager(sm);
         
         testFile = File.createTempFile(TEST_FILE_PREFIX, TEST_FILE_SUFFIX);
+        System.setSecurityManager(sm);
     }
 
     @Before
     public void beforeMethod() {
-        for (Permission p : reporter.getPermissions()) {
-            System.out.println(p.toString());
-        }
         reporter.clear();
     }
-
+    
     @Test
     public void testFileReadPermissionCheck() throws Exception {
         System.out.println("Test file read permission...");
