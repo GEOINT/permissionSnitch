@@ -75,7 +75,7 @@ public class SnitchSecurityManager extends SecurityManager {
         try {
             String className = getOriginatingClass(perm);
             ProtectionDomain pd = getProductionDomain(className);
-            if (pd.getCodeSource() != null) {
+            if (pd != null && pd.getCodeSource() != null) {
                 reporter.permission(perm, pd);
             }
         } catch (RecursivePermissionException ex) {
@@ -103,9 +103,10 @@ public class SnitchSecurityManager extends SecurityManager {
     private ProtectionDomain getProductionDomain(String clazz) {
         Class c = null;
         try {
-            c = Class.forName(clazz);
+            c = SnitchSecurityManager.class.getClassLoader().loadClass(clazz);
         } catch (ClassNotFoundException ex) {
-            //we know this is fine, we get the class name from a StackTrace
+            System.err.println("Unable to load class '" + clazz + "'");
+            return null;
         }
         PrivilegedAction<ProtectionDomain> papd = getProtectionDomainAction(c);
         return papd.run();
