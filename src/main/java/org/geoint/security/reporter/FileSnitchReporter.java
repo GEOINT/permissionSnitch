@@ -1,9 +1,11 @@
 package org.geoint.security.reporter;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FilePermission;
 import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.PrintWriter;
 import java.security.Permission;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
@@ -33,7 +35,7 @@ import org.geoint.security.spi.SnitchReporter;
 public class FileSnitchReporter extends SnitchReporter {
 
     private final File outfile;
-    private final RandomAccessFile raf;
+//    private final RandomAccessFile raf;
     private volatile boolean started = false;
     private final Map<ProtectionDomain, List<Permission>> perms = new HashMap<>();
 
@@ -43,24 +45,23 @@ public class FileSnitchReporter extends SnitchReporter {
     public FileSnitchReporter() {
         outfile = determineOutfile();
 
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                if (raf != null) {
-                    try {
-                        raf.close();
-                    } catch (Exception ex) {
-                    }
-                }
-            }
-        });
-
-        try {
-            raf = new RandomAccessFile(outfile, "rw");
-        } catch (Throwable ex) {
-            throw new RuntimeException("Unable to snitch permissions to file", ex);
-        }
-
+//        Runtime.getRuntime().addShutdownHook(new Thread() {
+//            @Override
+//            public void run() {
+//                if (raf != null) {
+//                    try {
+//                        raf.close();
+//                    } catch (Exception ex) {
+//                    }
+//                }
+//            }
+//        });
+//
+//        try {
+//            raf = new RandomAccessFile(outfile, "rw");
+//        } catch (Throwable ex) {
+//            throw new RuntimeException("Unable to snitch permissions to file", ex);
+//        }
         started = true;
     }
 
@@ -81,11 +82,16 @@ public class FileSnitchReporter extends SnitchReporter {
         perms.get(pd).add(p);
 
         //write out the perms
-        try {
-            raf.seek(0);
+        try (PrintWriter writer = new PrintWriter(new BufferedOutputStream(
+                new FileOutputStream(outfile)))) {
+//            raf.seek(0);
+//            for (Entry<ProtectionDomain, List<Permission>> entry : perms.entrySet()) {
+//                raf.writeUTF(format(entry.getKey(), entry.getValue().toArray(new Permission[0])));
+//            }
             for (Entry<ProtectionDomain, List<Permission>> entry : perms.entrySet()) {
-                raf.writeChars(format(entry.getKey(), entry.getValue().toArray(new Permission[0])));
+                writer.write(format(entry.getKey(), entry.getValue().toArray(new Permission[0])));
             }
+
         } catch (IOException ex) {
             System.err.println("Unable to save permission");
             ex.printStackTrace();
