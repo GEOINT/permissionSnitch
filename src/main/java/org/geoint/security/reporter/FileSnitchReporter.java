@@ -83,7 +83,7 @@ public class FileSnitchReporter extends SnitchReporter {
 
         //write out the perms
         try (PrintWriter writer = new PrintWriter(new BufferedOutputStream(
-                new FileOutputStream(outfile)))) {
+                new FileOutputStream(outfile, true)))) {
 //            raf.seek(0);
 //            for (Entry<ProtectionDomain, List<Permission>> entry : perms.entrySet()) {
 //                raf.writeUTF(format(entry.getKey(), entry.getValue().toArray(new Permission[0])));
