@@ -16,10 +16,12 @@ import org.geoint.security.spi.SnitchReporter;
  * <p>
  * This SecurityManager implementation <b>should not</b> be used in production.
  * The purpose of this class is to figure out which permissions an application
- * needs, useful in debugging, documenting, and preparing to deploy a 3rd party
+ * needs, useful for debugging, documenting, and preparing to deploy a 3rd party
  * application in a security managed environment. Again, this implementation is
  * <b>not</b> secure for production use.
+ *
  * <h1>How to use the SnitchSecurityManager</h1>
+ *
  * <h2>JVM Property</h2>
  * Most of the time, you'll want to use the SnitchSecurityManager in a similar
  * environment the target application will be running. For example, if the
